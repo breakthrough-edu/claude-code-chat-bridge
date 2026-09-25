@@ -3,3 +3,7 @@ sessions.json
 *.log
 .env
 .DS_Store
+state/
+logs/
+*.bak-*
+*.tmp-*

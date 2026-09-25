@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Template for a user LaunchAgent. Copy it to ~/Library/LaunchAgents/com.example.chat-bridge.plist,
+  replace every YOUR_USER and every ou_xxx (BRIDGE_BOT_ID stays commented out unless you want groups),
+  create the logs folder, then:
+    mkdir -p ~/Scripts/chat-bridge/logs
+    plutil -lint ~/Library/LaunchAgents/com.example.chat-bridge.plist
+    launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.example.chat-bridge.plist
+
+  Everything launchd itself opens (the script, WorkingDirectory, both logs) lives under
+  ~/Scripts/chat-bridge/, NOT under ~/Documents, ~/Desktop or ~/Downloads. Those folders are
+  privacy-protected: a plist pointing into them works while you are logged in and then fails
+  after a cold boot with "last exit code = 78: EX_CONFIG" and an empty log.
+
+  launchd does not expand ~ or $HOME, so every path is absolute.
+  Stop it for good with scripts/pause.sh com.example.chat-bridge, not with bootout alone.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.example.chat-bridge</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <!-- A STABLE node path, not a version-manager shim that changes on upgrade. -->
+    <string>/usr/local/bin/node</string>
+    <string>/Users/YOUR_USER/Scripts/chat-bridge/bridge/bridge.mjs</string>
+  </array>
+
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/YOUR_USER/Scripts/chat-bridge</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key>
+    <string>/Users/YOUR_USER</string>
+    <key>PATH</key>
+    <string>/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin</string>
+
+    <!-- The only directory the agent works in. It may live anywhere you like, but if it is
+         under ~/Documents the launch binary (node above) needs Full Disk Access. -->
+    <key>BRIDGE_WORKDIR</key>
+    <string>/Users/YOUR_USER/notes</string>
+    <!-- The line `which -a claude` prints that starts with /. -->
+    <key>CLAUDE_BIN</key>
+    <string>/Users/YOUR_USER/.local/bin/claude</string>
+    <!-- Your own sender id under THIS bot app (open_id is per app). Comma-separate several. -->
+    <key>BRIDGE_ALLOWED_USERS</key>
+    <string>ou_xxx</string>
+    <!-- Optional: the bot's own id, to answer @-mentions in groups. Without it, groups are
+         ignored. To find it: add the bot to a group, run scripts/whoami.sh, then send a
+         message in that group that @-mentions the bot. The bot's id is listed among the
+         mentioned ids. -->
+    <!--
+    <key>BRIDGE_BOT_ID</key>
+    <string>ou_xxx</string>
+    -->
+    <key>BRIDGE_STATE_DIR</key>
+    <string>/Users/YOUR_USER/Scripts/chat-bridge/state</string>
+
+    <key>LARK_CLI</key>
+    <string>/usr/local/bin/lark-cli</string>
+    <!-- The lark-cli profile of THIS bot app. Two consumers on one app split its events. -->
+    <key>LARK_PROFILE</key>
+    <string>your-bot-profile</string>
+
+    <!-- Optional approval cards: a folder OUTSIDE BRIDGE_WORKDIR that the one carded action
+         writes into, only after you tap Approve. Leave out to keep approval cards off. -->
+    <!--
+    <key>BRIDGE_OUTSIDE_DIR</key>
+    <string>/Users/YOUR_USER/Scripts/chat-bridge/approved</string>
+    -->
+
+    <!-- Optional outside heartbeat (a dead-man's-switch URL). Leave out to keep it off. -->
+    <!--
+    <key>BRIDGE_HEARTBEAT_URL</key>
+    <string>https://example.invalid/ping/your-check-id</string>
+    -->
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>/Users/YOUR_USER/Scripts/chat-bridge/logs/bridge.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/YOUR_USER/Scripts/chat-bridge/logs/bridge.log</string>
+</dict>
+</plist>

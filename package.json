@@ -1,0 +1,17 @@
+{
+  "name": "claude-code-chat-bridge",
+  "version": "2.0.0",
+  "description": "Reference implementation of a chat-to-Claude-Code bridge: hardened headless runs, a cage check on every run, a silence watchdog, a persisted job ledger.",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.6"
+  },
+  "scripts": {
+    "start": "node bridge/bridge.mjs",
+    "test": "node --test bridge/test/*.test.mjs",
+    "check": "for f in bridge/*.mjs bridge/actions/*.mjs bridge/test/*.mjs scripts/*.mjs; do node --check \"$f\" || exit 1; done && for f in scripts/*.sh; do bash -n \"$f\" || exit 1; done && plutil -lint bridge/com.example.chat-bridge.plist",
+    "replay": "node scripts/replay-transcripts.mjs"
+  }
+}
